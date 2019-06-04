@@ -5,18 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using IdentityServer4.Configuration;
-using IdentityServer4.EntityFramework.Interfaces;
 using IdentityServer4.Hosting;
 using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer.Configuration;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using QuickstartIdentityServer.Quickstart.Interface;
+using QuickstartIdentityServer.Quickstart.Repository;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -25,50 +25,9 @@ namespace Microsoft.Extensions.DependencyInjection
   /// </summary>
   public static class IdentityServerBuilderConfigurationExtensions
   {
-    /// <summary>
-    /// Configures defaults for Identity Server for ASP.NET Core scenarios.
-    /// </summary>
-    /// <typeparam name="TUser">The <typeparamref name="TUser"/> type.</typeparam>
-    /// <typeparam name="TContext">The <typeparamref name="TContext"/> type.</typeparam>
-    /// <param name="builder">The <see cref="IIdentityServerBuilder"/>.</param>
-    /// <returns>The <see cref="IIdentityServerBuilder"/>.</returns>
-    public static IIdentityServerBuilder AddApiAuthorization<TUser, TContext>(
-        this IIdentityServerBuilder builder) where TUser : class
-        where TContext : DbContext, IPersistedGrantDbContext
+    public static IIdentityServerBuilder AddMongoRepository(this IIdentityServerBuilder builder)
     {
-      builder.AddApiAuthorization<TUser, TContext>(o => { });
-      return builder;
-    }
-
-    /// <summary>
-    /// Configures defaults on Identity Server for ASP.NET Core scenarios.
-    /// </summary>
-    /// <typeparam name="TUser">The <typeparamref name="TUser"/> type.</typeparam>
-    /// <typeparam name="TContext">The <typeparamref name="TContext"/> type.</typeparam>
-    /// <param name="builder">The <see cref="IIdentityServerBuilder"/>.</param>
-    /// <param name="configure">The <see cref="Action{ApplicationsOptions}"/>
-    /// to configure the <see cref="ApiAuthorizationOptions"/>.</param>
-    /// <returns>The <see cref="IIdentityServerBuilder"/>.</returns>
-    public static IIdentityServerBuilder AddApiAuthorization<TUser, TContext>(
-        this IIdentityServerBuilder builder,
-        Action<ApiAuthorizationOptions> configure)
-            where TUser : class
-            where TContext : DbContext, IPersistedGrantDbContext
-    {
-      if (configure == null)
-      {
-        throw new ArgumentNullException(nameof(configure));
-      }
-
-      builder.AddAspNetIdentity<TUser>()
-          .AddOperationalStore<TContext>()
-          .ConfigureReplacedServices()
-          .AddIdentityResources()
-          .AddApiResources()
-          .AddClients()
-          .AddSigningCredentials();
-
-      builder.Services.Configure(configure);
+      builder.Services.AddTransient<IRepository, MongoRepository>();
 
       return builder;
     }

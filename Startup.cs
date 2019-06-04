@@ -2,11 +2,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
-using Microsoft.EntityFrameworkCore;
-using AngularIdentityServer.Data;
 using AngularIdentityServer.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using AspNetCore.Identity.Mongo;
 
 namespace AngularIdentityServer
 {
@@ -22,15 +21,19 @@ namespace AngularIdentityServer
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddDbContext<ApplicationDbContext>(options =>
-          options.UseSqlite(
-              Configuration.GetConnectionString("DefaultConnection")));
-
-      services.AddDefaultIdentity<ApplicationUser>()
-          .AddEntityFrameworkStores<ApplicationDbContext>();
+      services.AddIdentityMongoDbProvider<ApplicationUser>(mongo =>
+      {
+        mongo.ConnectionString = Configuration.GetConnectionString("DefaultConnection");
+      });
 
       services.AddIdentityServer()
-          .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+        .AddAspNetIdentity<ApplicationUser>()
+        .AddMongoRepository()
+        .ConfigureReplacedServices()
+        .AddIdentityResources()
+        .AddApiResources()
+        .AddClients()
+        .AddSigningCredentials();
 
       services.AddAuthentication()
           .AddIdentityServerJwt();
